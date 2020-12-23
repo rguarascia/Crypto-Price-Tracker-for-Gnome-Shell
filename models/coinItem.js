@@ -25,7 +25,7 @@ var CoinItem = GObject.registerClass(
         Signals: { toggled: { param_types: [GObject.TYPE_BOOLEAN] } },
     },
     class CoinItem extends PopupMenu.PopupBaseMenuItem {
-        _init(symbol, active, title=null) {
+        _init(symbol, active, title = null) {
             super._init({
                 reactive: true,
                 activate: true,
@@ -50,7 +50,7 @@ var CoinItem = GObject.registerClass(
             this.add_child(delBtn);
 
             this.label = new St.Label({
-                text: title||symbol,
+                text: title || symbol,
                 y_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
             });
@@ -84,12 +84,12 @@ var CoinItem = GObject.registerClass(
             let menuItem = Me.imports.extension.menuItem;
 
             this._refreshPrice(menuItem);
-            menuItem.text = this.title||this.symbol  + ' ...';
+            menuItem.text = this.title || this.symbol + ' ...';
             this.activeCoin = true;
 
             Settings.updateCoin(this._getJSON())
         }
-        _getJSON(){
+        _getJSON() {
             return {
                 symbol: this.symbol,
                 active: this.activeCoin,
@@ -99,8 +99,8 @@ var CoinItem = GObject.registerClass(
         _getPrice() {
             let symbol = this.symbol;
             symbol = symbol.replace('/', '');
-
             return Binance.getCoin(symbol);
+
         }
 
         _startTimer() {
@@ -116,7 +116,12 @@ var CoinItem = GObject.registerClass(
         async _refreshPrice(menuItem) {
             let result = await this._getPrice();
             const jsonRes = JSON.parse(result.body);
-            let price = jsonRes.price;
+            var price;
+            if (this.symbol === "CEL/USD") {
+                price = jsonRes.quotes.USD.price.toString();
+            } else {
+                price = jsonRes.price;
+            }
             let priceParts = price.split('.');
 
             const totalLen = 6;
@@ -133,8 +138,8 @@ var CoinItem = GObject.registerClass(
                     price += priceParts[1][i];
                 }
 
-            if (this.activeCoin) menuItem.text = `${this.title||this.symbol}   ${price}`;
-            this.label.text = `${this.title||this.symbol}    ${price}     `;
+            if (this.activeCoin) menuItem.text = `${this.title || this.symbol}   $${price}`;
+            this.label.text = `${this.title || this.symbol}    $${price}     `;
         }
         get state() {
             return this._switch.state;
@@ -146,7 +151,6 @@ var CoinItem = GObject.registerClass(
 
         activate(event) {
             if (this._switch.mapped) this.toggle();
-
             // we allow pressing space to toggle the switch
             // without closing the menu
             if (
